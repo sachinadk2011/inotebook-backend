@@ -6,9 +6,16 @@ conectToMonngo();
 const app = express()
 const port = 5000
 
+// Middleware to parse JSON payloads
+app.use(express.json());
+
 app.get('/', (req, res) => {
-  res.send('Hello sachin')
-})
+  res.send('Server is up and running');
+});
+
+//available routes
+app.use('/api/auth', require("./routes/auth"))
+app.use('/api/notes', require("./routes/notes"))
 
 
 app.listen(port, () => {
