@@ -26,7 +26,7 @@ router.post('/createUser',[
    if (user){
     return res.status(400).json({errors: "Sorry a user with this email already exists"})
    }
-   securePassword = await bcrypt.hash(req.body.password, salt); 
+  const securePassword = await bcrypt.hash(req.body.password, salt); 
    console.log(salt);
    //creating new user 
     user = await User.create({
@@ -45,7 +45,45 @@ router.post('/createUser',[
 }
 catch(error){
     console.error( error.message)
-    res.status(500).send("Some Error occured")};
+    res.status(500).send("Internal Server Error")};
+})
+//Authenticate user using POST "/api/auth/login". login
+router.post('/login',[
+    
+    body('email', "Enter valid email").isEmail(),
+    body('password', "Password cant be blank").exists()
+
+], async (req,res)=>{
+    //if there r errors return bads request and errors
+    const errors = validationResult(req);
+    /* console.log(errors); */
+    if(!errors.isEmpty()){
+        return res.status(400).json({ errors: errors.array() });
+    }
+    const {email, password} = req.body;
+    //Check whether user with this email exists already 
+    try{
+   let user = await User.findOne({email})
+   if (!user){
+    return res.status(400).json({errors: "Invalid email or Passowrd, please try again"});
+   }
+   const passwordCompare = await bcrypt.compareSync(password, user.password);
+   if(!passwordCompare){
+    return res.status(400).json({errors: "Invalid email or Passowrd, please try again"});
+   } 
+
+    const data = {
+        user:{
+            id: user.id
+        }
+    }
+   const token = await jwt.sign(data, JWT_SECRET);
+   console.log(token)
+  res.json({token});
+}
+catch(error){
+    console.error( error.message)
+    res.status(500).send("Internal Server Error")};
 })
 
 module.exports = router
