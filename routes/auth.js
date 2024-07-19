@@ -5,9 +5,10 @@ const { body, validationResult } = require('express-validator');
 const bcrypt = require('bcryptjs');
 const salt = bcrypt.genSaltSync(10);
 const jwt = require('jsonwebtoken');
+const fetchuser = require("../middleware/fetchuser");
 
 const JWT_SECRET = 'hdsjgkh$sghg@udbfhh';
-//create a user using POST "/api/auth/createUser". signup
+//ROUTE-1: create a user using POST "/api/auth/createUser". signup
 router.post('/createUser',[
     body('name', "Name feild cant be empty").isLength({min: 3}),
     body('email', "Enter valid email").isEmail(),
@@ -47,7 +48,7 @@ catch(error){
     console.error( error.message)
     res.status(500).send("Internal Server Error")};
 })
-//Authenticate user using POST "/api/auth/login". login
+//ROUTE-2: Authenticate user using POST "/api/auth/login". login
 router.post('/login',[
     
     body('email', "Enter valid email").isEmail(),
@@ -80,6 +81,38 @@ router.post('/login',[
    const token = await jwt.sign(data, JWT_SECRET);
    console.log(token)
   res.json({token});
+}
+catch(error){
+    console.error( error.message)
+    res.status(500).send("Internal Server Error")};
+})
+//ROUTE-3: Get logged in User Detail using : Get   "/api/auth/getuser". login require
+router.post('/getuser',fetchuser, async (req,res)=>{
+    //if there r errors return bads request and errors
+    const errors = validationResult(req);
+    /* console.log(errors); */
+    if(!errors.isEmpty()){
+        return res.status(400).json({ errors: errors.array() });
+    }
+    /* const {email, password} = req.body; */
+    //Check whether user with this email exists already 
+    try{
+        const userId = req.user.id;
+   let user = await User.findById(userId).select("-password")
+   res.send(user);
+   /* const passwordCompare = await bcrypt.compareSync(password, user.password);
+   if(!passwordCompare){
+    return res.status(400).json({errors: "Invalid email or Passowrd, please try again"});
+   } 
+
+    const data = {
+        user:{
+            id: user.id
+        }
+    }
+   const token = await jwt.sign(data, JWT_SECRET);
+   console.log(token)
+  res.json({token}); */
 }
 catch(error){
     console.error( error.message)
