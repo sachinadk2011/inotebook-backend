@@ -88,31 +88,12 @@ catch(error){
 })
 //ROUTE-3: Get logged in User Detail using : Get   "/api/auth/getuser". login require
 router.post('/getuser',fetchuser, async (req,res)=>{
-    //if there r errors return bads request and errors
-    const errors = validationResult(req);
-    /* console.log(errors); */
-    if(!errors.isEmpty()){
-        return res.status(400).json({ errors: errors.array() });
-    }
-    /* const {email, password} = req.body; */
-    //Check whether user with this email exists already 
+    // checking authentication token of user and get detail
     try{
         const userId = req.user.id;
    let user = await User.findById(userId).select("-password")
    res.send(user);
-   /* const passwordCompare = await bcrypt.compareSync(password, user.password);
-   if(!passwordCompare){
-    return res.status(400).json({errors: "Invalid email or Passowrd, please try again"});
-   } 
-
-    const data = {
-        user:{
-            id: user.id
-        }
-    }
-   const token = await jwt.sign(data, JWT_SECRET);
-   console.log(token)
-  res.json({token}); */
+  
 }
 catch(error){
     console.error( error.message)
