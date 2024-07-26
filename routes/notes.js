@@ -9,7 +9,6 @@ router.get("/fetchallnote", fetchuser, async (req, res) => {
   try {
     const notes = await Notes.find({ user: req.user.id });
     res.json(notes);
-    console.log(notes);
   } catch (error) {
     console.error(error.message);
     res.status(500).send("Internal Server Error");
@@ -20,9 +19,9 @@ router.post(
   "/addnote",
   fetchuser,
   [
-    body("title", "Title cant be empty").isLength({ min: 3 }),
+    body("title", "Title cant be empty").isLength({ min: 5 }),
     body("description", "Description must be at least 5 characters").isLength({
-      min: 1,
+      min: 5,
     }),
   ],
   async (req, res) => {
@@ -30,20 +29,20 @@ router.post(
       const { title, description, tag } = req.body;
       //if there r errors return bads request and errors
       const errors = validationResult(req);
-      /* console.log(errors); */
+     
       if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
       }
-      console.log(req.user.id);
+     
       const note = new Notes({
         user: req.user.id,
         title,
         description,
         tag,
       });
-      console.log(note);
+      
       const saveNote = await note.save();
-      console.log(saveNote);
+      
 
       res.json(saveNote);
     } catch (error) {
