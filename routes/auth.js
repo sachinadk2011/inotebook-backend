@@ -9,29 +9,29 @@ const fetchuser = require("../middleware/fetchuser");
 const JWT_SECRET = "hdsjgkh$sghg@udbfhh";
 
 //ROUTE-1: create a user using POST "/api/auth/createUser". signup
-router.post(
-  "/createUser",
+router.post("/createUser",
   [
     body("name", "Name feild cant be empty").isLength({ min: 3 }),
     body("email", "Enter valid email").isEmail(),
     body("password", "Enter password at least 8 character").isLength({
-      min: 1,
+      min: 8,
     }),
   ],
   async (req, res) => {
+    let success= false;
     //if there r errors return bads request and errors
     const errors = validationResult(req);
     
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      return res.status(400).json({ success: false, errors: errors.array() });
     }
     //Check whether user with this email exists already
     try {
       let user = await User.findOne({ email: req.body.email });
-      if (user) {
+      if (user) {0 
         return res
           .status(400)
-          .json({ errors: "Sorry a user with this email already exists" });
+          .json({ success: false, errors: "Sorry a user with this email already exists" });
       }
       const securePassword = await bcrypt.hash(req.body.password, salt);
       
@@ -48,7 +48,7 @@ router.post(
       };
       const token = await jwt.sign(data, JWT_SECRET);
       
-      res.json({ token });
+      res.json({success:true, token });
     } catch (error) {
       console.error(error.message);
       res.status(500).send("Internal Server Error");
@@ -63,11 +63,12 @@ router.post(
     body("password", "Password cant be blank").exists(),
   ],
   async (req, res) => {
+    let success= false;
     //if there r errors return bads request and errors
     const errors = validationResult(req);
     
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      return res.status(400).json({ success, errors: errors.array() });
     }
     const { email, password } = req.body;
     //Check whether user with this email exists already
@@ -76,13 +77,13 @@ router.post(
       if (!user) {
         return res
           .status(400)
-          .json({ errors: "Invalid email or Passowrd, please try again" });
+          .json({ success, errors: "Invalid email or Passowrd, please try again" });
       }
       const passwordCompare = await bcrypt.compareSync(password, user.password);
       if (!passwordCompare) {
         return res
           .status(400)
-          .json({ errors: "Invalid email or Passowrd, please try again" });
+          .json({ success, errors: "Invalid email or Passowrd, please try again" });
       }
 
       const data = {
@@ -92,7 +93,7 @@ router.post(
       };
       const token = await jwt.sign(data, JWT_SECRET);
      
-      res.json({ token });
+      res.json({success: true, token });
     } catch (error) {
       console.error(error.message);
       res.status(500).send("Internal Server Error");
