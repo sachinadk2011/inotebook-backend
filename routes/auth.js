@@ -6,7 +6,7 @@ const bcrypt = require("bcryptjs");
 const salt = bcrypt.genSaltSync(10);
 const jwt = require("jsonwebtoken");
 const fetchuser = require("../middleware/fetchuser");
-const JWT_SECRET = "hdsjgkh$sghg@udbfhh";
+const JWT_SECRET = "s@ftgj$frt@fdnfjrT";
 
 //ROUTE-1: create a user using POST "/api/auth/createUser". signup
 router.post("/createUser",
@@ -50,7 +50,7 @@ router.post("/createUser",
       
       res.json({success:true, token });
     } catch (error) {
-      console.error(error.message);
+      /* console.error(error.message); */
       res.status(500).send("Internal Server Error");
     }
   }
@@ -95,7 +95,7 @@ router.post(
      
       res.json({success: true, token });
     } catch (error) {
-      console.error(error.message);
+     /*  console.error(error.message); */
       res.status(500).send("Internal Server Error");
     }
   }
@@ -108,7 +108,7 @@ router.post("/getuser", fetchuser, async (req, res) => {
     let user = await User.findById(userId).select("-password");
     res.send(user);
   } catch (error) {
-    console.error(error.message);
+   /*  console.error(error.message); */
     res.status(500).send("Internal Server Error");
   }
 });

@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const JWT_SECRET = "hdsjgkh$sghg@udbfhh";
+const JWT_SECRET = "s@ftgj$frt@fdnfjrT";
 
 const fetchuser = (req, res, next) => {
   //get the user from jwt token and add id to req  object:
@@ -12,7 +12,7 @@ const fetchuser = (req, res, next) => {
     req.user = data.user;
     next();
   } catch (error) {
-    console.error(error.message);
+   /*  console.error(error.message); */
     res.status(500).send("Internal Server Error");
   }
 };
