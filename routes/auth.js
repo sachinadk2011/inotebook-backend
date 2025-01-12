@@ -34,7 +34,6 @@ router.post("/createUser",
           .json({ success: false, errors: "Sorry a user with this email already exists" });
       }
       const securePassword = await bcrypt.hash(req.body.password, salt);
-      
       //creating new user
       user = await User.create({
         name: req.body.name,
