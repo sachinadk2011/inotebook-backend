@@ -1,6 +1,7 @@
 const conectToMonngo = require("./db");
 const express = require("express");
 const cors = require('cors')
+const path = require("path");
 
 
 
@@ -14,8 +15,12 @@ app.use(cors())
 // Middleware to parse JSON payloads
 app.use(express.json());
 
-app.get("/", (req, res) => {
-  res.send("Server is up and running");
+// Serve static files from the frontend
+app.use(express.static(path.join(__dirname, "client/build"))); // Adjust path if needed
+
+// Catch-all route to serve React index.html
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "client/build", "index.html"));
 });
 
 //available routes
