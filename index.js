@@ -15,6 +15,11 @@ app.use(cors())
 // Middleware to parse JSON payloads
 app.use(express.json());
 
+
+//available routes
+app.use("/api/auth", require("./routes/auth"));
+app.use("/api/notes", require("./routes/notes"));
+
 // Serve static files from the frontend
 app.use(express.static(path.join(__dirname, "client/build"))); // Adjust path if needed
 
@@ -23,9 +28,6 @@ app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "client/build", "index.html"));
 });
 
-//available routes
-app.use("/api/auth", require("./routes/auth"));
-app.use("/api/notes", require("./routes/notes"));
 
 app.listen(port, () => {
   console.log(`Inotebook hosting at http://localhost:${port}`);
