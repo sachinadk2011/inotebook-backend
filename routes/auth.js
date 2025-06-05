@@ -103,9 +103,9 @@ if (user && !user.status) {
       const sendotp = await sendOTP(req.body.email, otpcode);
 
        if (sendotp){
-    return res.json({ success: true, message: "OTP sent successfully" });
+    return res.status(200).json({ success: true, message: "OTP sent successfully" });
     }else{
-      return res.json({ success: sendotp, message: "OTP failed to sent" });
+      return res.status(500).json({ success: sendotp, message: "OTP failed to sent" });
     }
     } catch (error) {
       // console.error(error.message);
@@ -156,7 +156,7 @@ router.post("/verify-otp",VerifyOtpLimiter, async (req, res) => {
 
       
 
-return res.json({
+return res.status(200).json({
   success: true,
   message: "OTP verified successfully",
 });
@@ -181,10 +181,10 @@ router.post("/resend",VerifyOtpLimiter, async (req, res) => {
     ); // updating only those which need this
 
     const sendotp = await sendOTP(req.body.email, otpcode);
-    if (sendotp){
+     if (sendotp){
     return res.status(200).json({ success: true, message: "OTP sent successfully" });
     }else{
-      return res.json({ success: sendotp, message: "OTP failed to sent" });
+      return res.status(500).json({ success: sendotp, message: "OTP failed to sent" });
     }
   } catch (error) {
     // console.error(error.message);
@@ -316,7 +316,7 @@ router.post("/forget-password",forgetpwLimiter, async (req, res) => {
       return res.status(404).json({ success: false, message: "User of this email not found" });
     }
     // console.log("user.email is ", user.email);
-    try {
+    
       // console.log("in email sending otp ", user.password);
       const otpcode = generateOtp(); //remaking otp code
       // console.log("OTP code is in string :", otpcode);
@@ -327,15 +327,12 @@ router.post("/forget-password",forgetpwLimiter, async (req, res) => {
       const sendotp = await sendOTP(email, otpcode);
       // console.log(sendotp, email, otpcode);
       
-      return res
-        .status(200)
-        .json({ success: true, message: "OTP sent successfully" });
-    } catch (error) {
-      success = false
-      return res
-        .status(500)
-        .json({ success: false, message: "Failed to sent otp" });
+       if (sendotp){
+    return res.status(200).json({ success: true, message: "OTP sent successfully" });
+    }else{
+      return res.status(500).json({ success: sendotp, message: "OTP failed to sent" });
     }
+    
   } catch (error) {
     // console.error(error);
     return res.status(500).json({ success: false, message: "Server error" });
@@ -369,7 +366,7 @@ const passwordCompare1 = await bcrypt.compare(password, pw);
   const securePassword = await bcrypt.hash(password, salt);
   // console.log(password, securePassword);
   await User.updateOne({email }, { $set: { password: securePassword } });
-  success = true
+  
   return res.status(200).json({ success: true , message: 'Password updated successfully' });
 }}
 catch (error) {
