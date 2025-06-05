@@ -8,7 +8,7 @@ const salt = bcrypt.genSaltSync(10);
 const jwt = require("jsonwebtoken");
 const fetchuser = require("../middleware/fetchuser");
 const JWT_SECRET = process.env.JSONTOKEN;
-const limiter = require("../middleware/limiters")
+const {loginLimiter, deleteLimiter, signUpLimiter, VerifyOtpLimiter, forgetpwLimiter} = require("../middleware/limiters")
 
 const nodemailer = require("nodemailer");
 
@@ -57,7 +57,7 @@ router.post(
       min: 8,
     }),
   ],
-  limiter,
+  signUpLimiter,
   async (req, res) => {
     let success = false;
     //if there r errors return bads request and errors
@@ -104,7 +104,7 @@ router.post(
 );
 
 // Route-2:  for verifying user with otp using post method "/api/auth/verify-otp"
-router.post("/verify-otp",limiter, async (req, res) => {
+router.post("/verify-otp",VerifyOtpLimiter, async (req, res) => {
   let success = false;
   const { email, OtpCode } = req.body;
   // console.log("Email req body:", email);
@@ -156,7 +156,7 @@ router.post("/verify-otp",limiter, async (req, res) => {
 });
 
 //Route-3 for resend verification otp code taht expire using post method "/api/auth/resend"
-router.post("/resend",limiter, async (req, res) => {
+router.post("/resend",VerifyOtpLimiter, async (req, res) => {
   try {
     const otpEmail = req.body.email; //taking email
     // Generate OTP for the new user
@@ -182,7 +182,7 @@ router.post(
   [
     body("email", "Enter valid email").isEmail(),
     body("password", "Password cant be blank").exists(),
-  ],limiter,
+  ],loginLimiter,
   async (req, res) => {
     let success = false;
     //if there r errors return bads request and errors
@@ -200,7 +200,7 @@ router.post(
           .status(400)
           .json({
             success,
-            message: "Invalid email or Passowrd, please try again",
+            message: "This email doesnot exist, please try again with valid email",
           });
       } else if (!user.status) {
         return res
@@ -246,18 +246,18 @@ router.post("/getuser", fetchuser, async (req, res) => {
     let user = await User.findById(userId).select("-password");
      if (!user) {
       // User not found, possibly deleted
-      return res.status(404).json({ success: false, message: "User not found" });
+      return res.status(404).json({ success: false, message: "Account not found" });
     }
 
-    return res.send(user);
+    return res.send({ success: true, user:{name: user.name, email: user.email} });
   } catch (error) {
     /*  console.error(error.message); */
-    return res.status(500).send("Internal Server Error");
+    return res.status(500).send({success: false,message:"Internal Server Error"});
   }
 });
 
 // Route-6: Delete user acccount permanently from database using : delete  "/api/auth/deleteuserId/:id"
-router.delete("/deleteuserId", fetchuser,limiter, async (req, res) => {
+router.delete("/deleteuserId", fetchuser,deleteLimiter, async (req, res) => {
   try {
     const userId = req.user.id;
     // find and delete the user note before deleting user
@@ -267,18 +267,18 @@ router.delete("/deleteuserId", fetchuser,limiter, async (req, res) => {
     const deleteUser = await User.findByIdAndDelete(userId);
 
     if (!deleteUser) {
-      return res.status(404).json({ error: "User not found" });
+      return res.status(404).json({ success:false,error: "User not found" });
     }
     
     return res.status(200).json({success:true, message: "User account deleted successfully", user: deleteUser });
   } catch (error) {
     // console.error(error.message);
-    return res.status(500).send({message: "Internal Server Error"});
+    return res.status(500).send({success: false, message: "Internal Server Error"});
   }
 });
 
 // Route-7 Forget password  using POST method "/api/auth/forget-password"
-router.post("/forget-password",limiter, async (req, res) => {
+router.post("/forget-password",forgetpwLimiter, async (req, res) => {
   let success = false;
   //if there r errors return bads request and errors
   const errors = validationResult(req);
@@ -328,7 +328,7 @@ router.post("/forget-password",limiter, async (req, res) => {
 });
 
 // Route-8 Forget password  using POST method "/api/auth/forget-password"
-router.post("/resetpw",limiter, async (req, res) => {
+router.post("/resetpw",forgetpwLimiter, async (req, res) => {
   const { email, password } = req.body;
   // console.log("set pw path ", email, password);
   let success = false;
