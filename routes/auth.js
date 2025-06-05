@@ -83,7 +83,15 @@ router.post(
       const otpcode = generateOtp();
       // console.log("ur otp code", otpcode);
 
-      //creating new user
+      // If user exists but not verified, update OTP and password
+if (user && !user.status) {
+  user.name = req.body.name;
+  user.password = securePassword;
+  user.OtpCode = otpcode;
+  user.otpTime = 1;
+  await user.save();
+} else {
+  // If user doesn't exist, create new
       user = await User.create({
         name: req.body.name,
         email: req.body.email,
@@ -92,10 +100,14 @@ router.post(
         otpTime: 1,
         status: false, //initially status is false
       });
+}
       const sendotp = await sendOTP(req.body.email, otpcode);
 
-      // console.log(sendotp);
-      return  res.json({ success: true, message: "OTP sent successfully" });
+       if (sendotp){
+    return res.json({ success: true, message: "OTP sent successfully" });
+    }else{
+      return res.json({ success: sendotp, message: "OTP failed to sent" });
+    }
     } catch (error) {
       // console.error(error.message);
       return res.status(500).send("Internal Server Error");
@@ -128,12 +140,16 @@ router.post("/verify-otp",VerifyOtpLimiter, async (req, res) => {
     // console.log("OTP from Request:", OtpCode);
     // console.log("OTP match:", user.OtpCode === OtpCode);
     // console.log("Email Match:", user.email === email);
+    if (user.OtpCode !== OtpCode){
+      return res.status(400).json({ success: false, message: "Invalid OTP" });
+    }
 
-    if (user.OtpCode === OtpCode && user.otpTime === 0) {
+    if ( user.otpTime === 0) {
       return res
         .status(400)
         .json({ success: false, message: "OTP has expired" });
-    } else if (user.OtpCode === OtpCode && user.email === email) {
+    } 
+     if ( user.email === email) {
       user.status = true; // Mark user as verified
       user.OtpCode = null; // Clear OTP
       await user.save();
@@ -145,9 +161,6 @@ router.post("/verify-otp",VerifyOtpLimiter, async (req, res) => {
         success: true,
         message: "OTP verified successfully",
       });
-    } else {
-      
-      return res.status(400).json({ success: false, message: "Invalid OTP" });
     }
   } catch (error) {
     // console.error(error.message, OtpCode);
@@ -169,10 +182,14 @@ router.post("/resend",VerifyOtpLimiter, async (req, res) => {
     ); // updating only those which need this
 
     const sendotp = await sendOTP(req.body.email, otpcode);
-    return res.json({ success: sendotp, message: "OTP sent successfully" });
+    if (sendotp){
+    return res.json({ success: true, message: "OTP sent successfully" });
+    }else{
+      return res.json({ success: sendotp, message: "OTP failed to sent" });
+    }
   } catch (error) {
     // console.error(error.message);
-    return res.status(500).send("Internal Server Error");
+    return res.status(500).send({success: false, message:"Internal Server Error"});
   }
 });
 
@@ -214,7 +231,7 @@ router.post(
         return res
           .status(400)
           .json({
-            success,
+            success: false,
             message: "Invalid email or Passowrd, please try again",
           });
       }
@@ -234,7 +251,7 @@ router.post(
       });
     } catch (error) {
       /*  console.error(error.message); */
-     return  res.status(500).send("Internal Server Error");
+     return  res.status(500).send({success: false,message:"Internal Server Error"});
     }
   }
 );
