@@ -151,6 +151,7 @@ router.post("/verify-otp",VerifyOtpLimiter, async (req, res) => {
      if ( user.email === email) {
       user.status = true; // Mark user as verified
       user.OtpCode = null; // Clear OTP
+      user.otpTime = 0;
       await user.save();
       // console.log("User Found:", user);
 
