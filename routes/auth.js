@@ -59,7 +59,6 @@ router.post(
   ],
   signUpLimiter,
   async (req, res) => {
-    let success = false;
     //if there r errors return bads request and errors
     const errors = validationResult(req);
 
@@ -92,14 +91,14 @@ if (user && !user.status) {
   await user.save();
 } else {
   // If user doesn't exist, create new
-      user = await User.create({
-        name: req.body.name,
-        email: req.body.email,
-        password: securePassword,
-        OtpCode: otpcode,
+  user = await User.create({
+    name: req.body.name,
+    email: req.body.email,
+    password: securePassword,
+    OtpCode: otpcode,
         otpTime: 1,
         status: false, //initially status is false
-      });
+  });
 }
       const sendotp = await sendOTP(req.body.email, otpcode);
 
@@ -110,14 +109,14 @@ if (user && !user.status) {
     }
     } catch (error) {
       // console.error(error.message);
-      return res.status(500).send("Internal Server Error");
+      return res.status(500).send({success: false,message:"Internal Server Error"});
     }
   }
 );
 
 // Route-2:  for verifying user with otp using post method "/api/auth/verify-otp"
 router.post("/verify-otp",VerifyOtpLimiter, async (req, res) => {
-  let success = false;
+  
   const { email, OtpCode } = req.body;
   // console.log("Email req body:", email);
   // console.log("Otp by user otp: ", String(OtpCode));
@@ -132,7 +131,7 @@ router.post("/verify-otp",VerifyOtpLimiter, async (req, res) => {
     if (!user) {
       return res
         .status(404)
-        .json({ success: success, message: "User not found" });
+        .json({ success: false, message: "User not found" });
     }
 
     // console.log("User Found: verify otp", user);
@@ -157,11 +156,11 @@ router.post("/verify-otp",VerifyOtpLimiter, async (req, res) => {
 
       
 
-      return res.json({
-        success: true,
-        message: "OTP verified successfully",
-      });
-    }
+return res.json({
+  success: true,
+  message: "OTP verified successfully",
+});
+    } 
   } catch (error) {
     // console.error(error.message, OtpCode);
     return res.status(500).json({ success: false, message: "Internal Server Error" });
@@ -183,7 +182,7 @@ router.post("/resend",VerifyOtpLimiter, async (req, res) => {
 
     const sendotp = await sendOTP(req.body.email, otpcode);
     if (sendotp){
-    return res.json({ success: true, message: "OTP sent successfully" });
+    return res.status(200).json({ success: true, message: "OTP sent successfully" });
     }else{
       return res.json({ success: sendotp, message: "OTP failed to sent" });
     }
@@ -201,12 +200,11 @@ router.post(
     body("password", "Password cant be blank").exists(),
   ],loginLimiter,
   async (req, res) => {
-    let success = false;
     //if there r errors return bads request and errors
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-      return res.status(400).json({ success, errors: errors.array() });
+      return res.status(400).json({ success: false, errors: errors.array() });
     }
     const { email, password } = req.body;
     //Check whether user with this email exists already
@@ -214,9 +212,9 @@ router.post(
       let user = await User.findOne({ email });
       if (!user) {
         return res
-          .status(400)
+          .status(404)
           .json({
-            success,
+            success: false,
             message: "This email doesnot exist, please try again with valid email",
           });
       } else if (!user.status) {
@@ -243,7 +241,7 @@ router.post(
       };
       const token = await jwt.sign(data, JWT_SECRET);
 
-     return  res.json({
+     return  res.status(200).json({
         success: true,
         token: token,
         name: user.name,
@@ -266,7 +264,7 @@ router.post("/getuser", fetchuser, async (req, res) => {
       return res.status(404).json({ success: false, message: "Account not found" });
     }
 
-    return res.send({ success: true, user:{name: user.name, email: user.email} });
+    return res.status(200).send({ success: true, user:{name: user.name, email: user.email} });
   } catch (error) {
     /*  console.error(error.message); */
     return res.status(500).send({success: false,message:"Internal Server Error"});
@@ -296,7 +294,7 @@ router.delete("/deleteuserId", fetchuser,deleteLimiter, async (req, res) => {
 
 // Route-7 Forget password  using POST method "/api/auth/forget-password"
 router.post("/forget-password",forgetpwLimiter, async (req, res) => {
-  let success = false;
+ 
   //if there r errors return bads request and errors
   const errors = validationResult(req);
 
@@ -309,13 +307,13 @@ router.post("/forget-password",forgetpwLimiter, async (req, res) => {
   if (!email) {
     return res
       .status(404)
-      .json({ success: success, message: "Email cannot be empty" });
+      .json({ success: false, message: "Email cannot be empty" });
   }
   try {
     let user = await User.findOne({ email });
     
     if (!user) {
-      return res.status(404).json({ success: success, message: "User of this email not found" });
+      return res.status(404).json({ success: false, message: "User of this email not found" });
     }
     // console.log("user.email is ", user.email);
     try {
@@ -328,19 +326,19 @@ router.post("/forget-password",forgetpwLimiter, async (req, res) => {
       );
       const sendotp = await sendOTP(email, otpcode);
       // console.log(sendotp, email, otpcode);
-      success = true
+      
       return res
         .status(200)
-        .json({ success: success, message: "OTP sent successfully" });
+        .json({ success: true, message: "OTP sent successfully" });
     } catch (error) {
       success = false
       return res
         .status(500)
-        .json({ success: success, message: "Failed to sent otp" });
+        .json({ success: false, message: "Failed to sent otp" });
     }
   } catch (error) {
     // console.error(error);
-    return res.status(500).json({ success: success, message: "Server error" });
+    return res.status(500).json({ success: false, message: "Server error" });
   }
 });
 
@@ -348,7 +346,7 @@ router.post("/forget-password",forgetpwLimiter, async (req, res) => {
 router.post("/resetpw",forgetpwLimiter, async (req, res) => {
   const { email, password } = req.body;
   // console.log("set pw path ", email, password);
-  let success = false;
+  
   
 
   try{
@@ -366,17 +364,17 @@ const passwordCompare1 = await bcrypt.compare(password, pw);
  if(passwordCompare1){
   return res
   .status(400)
-  .json({ success, message: "Choose a different Password" });
+  .json({ success: false, message: "Choose a different Password" });
 }else{
   const securePassword = await bcrypt.hash(password, salt);
   // console.log(password, securePassword);
   await User.updateOne({email }, { $set: { password: securePassword } });
   success = true
-  return res.status(200).json({ success: success , message: 'Password updated successfully' });
+  return res.status(200).json({ success: true , message: 'Password updated successfully' });
 }}
 catch (error) {
   // console.error(error);
-  return res.status(500).json({ success: success, message: 'Server error' });
+  return res.status(500).json({ success: false, message: 'Server error' });
 }
 });
 
