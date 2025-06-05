@@ -73,7 +73,7 @@ router.post(
           .status(400)
           .json({
             success: false,
-            errors: "Sorry a user with this email already exists",
+            message: "Sorry a user with this email already exists",
           });
       }
       const securePassword = await bcrypt.hash(req.body.password, salt);
@@ -103,9 +103,9 @@ if (user && !user.status) {
       const sendotp = await sendOTP(req.body.email, otpcode);
 
        if (sendotp){
-    return res.status(200).json({ success: true, message: "OTP sent successfully" });
+    return res.status(200).json({ success: true, message: "Verification Code is sent succefully" });
     }else{
-      return res.status(500).json({ success: sendotp, message: "OTP failed to sent" });
+      return res.status(500).json({ success: sendotp, message: "Verification Code failed to sent" });
     }
     } catch (error) {
       // console.error(error.message);
@@ -183,9 +183,9 @@ router.post("/resend",VerifyOtpLimiter, async (req, res) => {
 
     const sendotp = await sendOTP(req.body.email, otpcode);
      if (sendotp){
-    return res.status(200).json({ success: true, message: "OTP sent successfully" });
+    return res.status(200).json({ success: true, message: "Verification Code is sent succefully" });
     }else{
-      return res.status(500).json({ success: sendotp, message: "OTP failed to sent" });
+      return res.status(500).json({ success: sendotp, message: "Verification Code failed to sent" });
     }
   } catch (error) {
     // console.error(error.message);
