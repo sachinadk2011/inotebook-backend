@@ -8,10 +8,10 @@ const fetchuser = require("../middleware/fetchuser");
 router.get("/fetchallnote", fetchuser, async (req, res) => {
   try {
     const notes = await Notes.find({ user: req.user.id });
-    res.json(notes);
+    return res.json(notes);
   } catch (error) {
-    console.error(error.message);
-    res.status(500).send("Internal Server Error");
+    // console.error(error.message);
+    return res.status(500).send("Internal Server Error");
   }
 });
 //ROUTE-2: Add a new notes usimg POSt   "/api/auth/addnote". login require
@@ -44,10 +44,10 @@ router.post(
       const saveNote = await note.save();
       
 
-      res.json(saveNote);
+     return res.json(saveNote);
     } catch (error) {
-      console.error(error.message);
-      res.status(500).send("Internal Server Error");
+      // console.error(error.message);
+      return res.status(500).send("Internal Server Error");
     }
   }
 );
@@ -84,10 +84,10 @@ router.put("/updatenote/:id", fetchuser, async (req, res) => {
       { new: true }
     );
 
-    res.json(note);
+    return res.json(note);
   } catch (error) {
-    console.error(error.message);
-    res.status(500).send("Internal Server Error");
+    // console.error(error.message);
+    return res.status(500).send("Internal Server Error");
   }
 });
 
@@ -106,10 +106,10 @@ router.delete("/deletenote/:id", fetchuser, async (req, res) => {
 
     note = await Notes.findByIdAndDelete(req.params.id);
 
-    res.json({ success: "Note has been deleted", note: note });
+    return res.json({ success: "Note has been deleted", note: note });
   } catch (error) {
-    console.error(error.message);
-    res.status(500).send("Internal Server Error");
+    // console.error(error.message);
+    return res.status(500).send("Internal Server Error");
   }
 });
 
